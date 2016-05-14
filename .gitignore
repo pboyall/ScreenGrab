@@ -1,0 +1,14 @@
+_build/
+_unused/
+*.bat
+node_modules
+bin
+Archive
+obj
+output
+target
+test
+build
+.git
+.vs
+
