@@ -1,14 +1,28 @@
 /**********************************************************************
 Read file system for list of Files
 Generate a screenshot for each matched file pair
+Resize Screenshots to Thumbnail size
+Copy Thumbnails to each folder as "Thumb.png"
+Zip up each folder and move to Build Folder
+
+//TO DO - Create the CTL file for each Zip
+//TO DO - Automate the FTP upload for each Zip
+
+//TO DO - MASSIVE REFACTORING NEEDED!  Done in drubs as drabs as worked out on the fly
 
 This NODE job calls a second PHANTOM job and passes the data by writing a JSON file
-to the output folder where the screenshots go 
+to the output folder where the screenshots go
+Then calls back to itself and does the resize and zip
 
 Parameters : 
 Folder to check for .html files  (with trailing slash)
 Folder to which to write .png  files (with trailing slash)
 Name of file to write transient JSON data store
+Build Directory to target for final zips
+Presentation Name
+Whether or not to create thumbnails
+Whether or not to create zip files
+
 
 Dependencies :
 
@@ -109,12 +123,10 @@ console.log("In = " + infolder);
 console.log("Output to " + outputfolder);
 console.log("Build Folder " + buildir);
 console.log("Presentation Name " + presname);
-checkDirectorySync(buildir)
-
-//Do a trailing slash check!
-
-
-console.log("Writing to " + outputfile);
+console.log("Thumbnails " + thumbnails);
+console.log("Zips " + zips);
+checkDirectorySync(buildir) //Do a trailing slash check!
+console.log("JSON File " + outputfile);
 
 var childArgs = [
   //path.join(__dirname, 'multipath.js'), URLs
@@ -273,7 +285,8 @@ var getIDsAndNames = function (files) {
     filejson = filejson.substring(0, filejson.length - 1);
     filejson += "]";
     fs.writeFileSync(outputfile, filejson);
-    //Needs to be synchronous, I think
+    //Needs to be synchronous, I think this is what was breaking the whole fs object access and thus resulted in the hacky "read the JSON file" approach to the screenshot resizing.
+    //Which actually isn't a bad thing, as just resizing all PNGs wouldn't have worked anyway ...  would have been resizing background images and all sorts
 };
 
 //Convert graphics
