@@ -6,10 +6,12 @@
   "dependencies": {
     "archiver": "^1.0.0",
     "async": "^2.0.0-rc.4",
+    "chromedriver": "^2.21.2",
     "fs": "0.0.2",
     "gm": "^1.22.0",
     "path": "^0.12.7",
     "phantomjs": "^2.1.7",
+    "selenium-webdriver": "^2.53.2",
     "system": "^1.0.4",
     "underscore": "^1.8.3",
     "webpage": "^0.3.0"

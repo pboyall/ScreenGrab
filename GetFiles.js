@@ -128,6 +128,8 @@ console.log("Zips " + zips);
 checkDirectorySync(buildir) //Do a trailing slash check!
 console.log("JSON File " + outputfile);
 
+//Change this to use a different sub process for the file rendering (e.g. if wanted to use Casper, Slimer or Selenium)
+
 var childArgs = [
   //path.join(__dirname, 'multipath.js'), URLs
   path.join(__dirname, 'CaptureFiles.js'), infolder, outputfolder
