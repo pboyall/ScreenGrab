@@ -163,7 +163,7 @@ function doScreenShots(loop) {
                         console.log("Screen Shot ");
                         var base64Data = data.replace(/^data:image\/png;base64,/, "")
                         try {
-                            fs.writeFileSync(outputfolder + "\\" + thisFileID + ".png", base64Data, 'base64')
+                            fs.writeFileSync(outputfolder + "\\slideThumbnail-" + thisFileID + ".png", base64Data, 'base64')
                         } catch (e) {
                             console.log(err);
                         }

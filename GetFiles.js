@@ -34,6 +34,8 @@ PhantomJS
 Must have Graphicsmagick installed first
 https://sourceforge.net/projects/graphicsmagick/files/graphicsmagick-binaries/1.3.23/
 
+If Using CaptureFiles1 (Chrome Selenium) must have Selenium ChromeDriver installed
+https://sites.google.com/a/chromium.org/chromedriver/
 
 Routine :
 
@@ -57,7 +59,7 @@ Performs cross match then calls child process to fire off phantom job
 Then performs resizing to thumbnail size
 
 **********************************************************************/
-
+var usephantom = false;         //Use PhantomJS
 
 var underscore = require('underscore');
 var path = require('path');
@@ -130,15 +132,17 @@ console.log("JSON File " + outputfile);
 
 //Change this to use a different sub process for the file rendering (e.g. if wanted to use Casper, Slimer or Selenium)
 
+//    //If require node binary, use this
+//    var nodeindex = process.env.path.indexOf("nodejs");
+//    var nodepathstart = process.env.path.lastIndexOf(';', nodeindex);
+//    var nodepath = process.env.path.substring(nodepathstart + 1, nodeindex + 7);
+//    binPath = "\"" + nodepath + "node\" " +  path.join(__dirname, 'CaptureFiles1.js')
+
 var childArgs = [
-  //path.join(__dirname, 'multipath.js'), URLs
-  path.join(__dirname, 'CaptureFiles.js'), infolder, outputfolder
+    //path.join(__dirname, 'multipath.js'), URLs
+    path.join(__dirname, 'CaptureFiles.js'), infolder, outputfolder
 ];
 
-//If require node binary, use this
-//            var nodeindex = process.env.path.indexOf("nodejs");
-//            var nodepathstart = process.env.path.lastIndexOf(';', nodeindex);
-//            var nodepath = process.env.path.substring(nodepathstart + 1, nodeindex + 7);
 
 //Function Definition
 //To iterate over the entire input folder recursively for files with specified extension  and containing "index" in their path
@@ -198,13 +202,24 @@ function generateImages() {
     try {
         console.log("This will take around ten minutes, standby");
         console.log(binPath + " " + childArgs);
-        childProcess.execFile(binPath, childArgs, function (err, stdout, stderr) {
-            // handle results
-            console.log(stdout);
-            console.log(stderr);
-            console.log(err);
-            sortoutzips(function () { console.log("Completed");process.exit() })
-        });
+        if (!usephantom) {
+            //C:\\code\\psa_uk_2016_august\\ C:\\code\\screens3\\ C:\\code\\screens3\\jsonoutput.json
+                childProcess.exec("node CaptureFiles1.js " + infolder + " " +  outputfolder + " " + outputfile, function (err, stdout, stderr) {
+                    console.log(stdout);
+                    console.log(stderr);
+                    console.log(err);
+                    sortoutzips(function () { console.log("Completed"); process.exit() })
+                }); 
+        }
+        else {
+                    childProcess.execFile(binPath, childArgs, function (err, stdout, stderr) {
+                        // handle results
+                        console.log(stdout);
+                        console.log(stderr);
+                        console.log(err);
+                        sortoutzips(function () { console.log("Completed"); process.exit() })
+                    });
+            }
     } catch (err) {
         console.log('Error running phantom job');
         console.log(err);

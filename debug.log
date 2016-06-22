@@ -40,3 +40,18 @@
 [0622/152832:ERROR:process_reader_win.cc(113)] NtOpenThread: {Access Denied} A process has requested access to an object, but has not been granted those access rights.  (0xc0000022)
 [0622/152832:ERROR:exception_snapshot_win.cc(57)] thread ID 7796 not found in process
 [0622/152832:WARNING:crash_report_exception_handler.cc(60)] ProcessSnapshotWin::InitializeException failed
+[0622/184652:ERROR:process_reader_win.cc(113)] NtOpenThread: {Access Denied} A process has requested access to an object, but has not been granted those access rights.  (0xc0000022)
+[0622/184652:ERROR:process_reader_win.cc(113)] NtOpenThread: {Access Denied} A process has requested access to an object, but has not been granted those access rights.  (0xc0000022)
+[0622/184652:ERROR:exception_snapshot_win.cc(57)] thread ID 12184 not found in process
+[0622/184652:WARNING:crash_report_exception_handler.cc(60)] ProcessSnapshotWin::InitializeException failed
+[0622/184652:ERROR:exception_snapshot_win.cc(57)] thread ID 13140 not found in process
+[0622/184652:WARNING:crash_report_exception_handler.cc(60)] ProcessSnapshotWin::InitializeException failed
+[0622/185036:ERROR:process_reader_win.cc(113)] NtOpenThread: {Access Denied} A process has requested access to an object, but has not been granted those access rights.  (0xc0000022)
+[0622/185036:ERROR:exception_snapshot_win.cc(57)] thread ID 5076 not found in process
+[0622/185036:WARNING:crash_report_exception_handler.cc(60)] ProcessSnapshotWin::InitializeException failed
+[0622/185923:ERROR:process_reader_win.cc(113)] NtOpenThread: {Access Denied} A process has requested access to an object, but has not been granted those access rights.  (0xc0000022)
+[0622/185923:ERROR:process_reader_win.cc(113)] NtOpenThread: {Access Denied} A process has requested access to an object, but has not been granted those access rights.  (0xc0000022)
+[0622/185923:ERROR:exception_snapshot_win.cc(57)] thread ID 7004 not found in process
+[0622/185923:ERROR:exception_snapshot_win.cc(57)] thread ID 9928 not found in process
+[0622/185923:WARNING:crash_report_exception_handler.cc(60)] ProcessSnapshotWin::InitializeException failed
+[0622/185923:WARNING:crash_report_exception_handler.cc(60)] ProcessSnapshotWin::InitializeException failed
