@@ -14,38 +14,32 @@ var RenderUrlsToFile, arrayOfUrls, system;
 system = require("system");
 outputfolder = "c:\\tmp\\";         //Default
 infolder = "c:\\tmp\\";         //Default
+
 var urlfile = "jsonoutput.json"
-var childProcess = require('child_process');
-var renderedImages;
-
 var fs = require('fs');
-
-/*Not required now
-var env = system.env;
-var nodepath; 
-
-Object.keys(env).forEach(function (key) {
-    //console.log(key + '=' + env[key]);
-    //Get the Node Path (we do assume it was installed under nodejs, got to start somewhere)
-    if (key == 'Path') {
-        var nodeindex = env[key].indexOf("nodejs");
-        var nodepathstart = env[key].lastIndexOf(';', nodeindex);
-        nodepath = env[key].substring(nodepathstart + 1, nodeindex + 7);
-        //Should really check if there is a slash at the end
-        //console.log(nodepath);
-    }
-});
-*/
-
-var height = 768;
-var width = 1024;
-/*
-Render given urls
-@param array of URLs to render
-*/
+var loadInProgress = false;
 var arrayOfUrls = null;
-console.log(process.argv.length);
-console.log(process.argv);
+var webdriver = require('selenium-webdriver');
+var until = webdriver.until;
+var by = webdriver.By;
+
+var chromeCapabilities = webdriver.Capabilities.chrome();
+var COO = {
+    mobileEmulation: {
+        deviceName: 'Apple iPad'
+    }
+};
+var COH = {
+    mobileEmulation: {
+        deviceMetrics: {
+            width: 1024,
+            height: 768,
+            mobile: true,
+            touch: true
+        }
+    }
+};
+
 if (process.argv.length == 5 ) {
     inputfolder = process.argv[2].replace(",", "");
     outputfolder = process.argv[3].replace(",", "");
@@ -56,69 +50,82 @@ if (process.argv.length == 5 ) {
     console.log("+++++++++++++++++++++++++++++++++++++++++");
     //Add some file error handling here!
     var urldata = fs.readFileSync(urlfile);
-  //  console.log('URLs' + urldata);
     jsondata = JSON.parse(urldata);
-//    console.log('Number of URLs: ' + jsondata.length);
-    //fs.changeWorkingDirectory(outputfolder);  
 } else {
     console.log("Usage: CaptureFiles1.js [sourcefolder], [outputfolder], [jsonfile.json]");
     process.exit();
 }
 
-//console.log('JSON Data : ');
-//console.log(jsondata);
-//console.log(jsondata[0]);
 
-//Log each file requested from the json 
+//Function for waiting until a condition is triggered
+var waiter = function (condFunc, readyFunc, checkInterval) {
+    var checkFunc = function () {
+        if (condFunc()) {
+            readyFunc();
+        }
+        else {
+            setTimeout(checkFunc, checkInterval);
+        }
+    };
+    checkFunc();
+};
 
-for (i = 0; i < jsondata.length; i++) {
- //   console.log(jsondata[i].filepath);
+//Alternative Setting Options
+//chromeCapabilities.set('chromeOptions', chromeOptions);
+//chromeCapabilities.set('chromeOptions.CAPABILITY', chromeOptions);
+//Works but Portrait chromeCapabilities.set('chromeOptions', COO);
+chromeCapabilities.set('chromeOptions', COH);
+
+// If no capabilities needed, i.e. no emulation var driver = new webdriver.Builder().forBrowser('chrome').build();
+var driver = new webdriver.Builder().withCapabilities(chromeCapabilities).build();
+driver.manage().window().setSize(1024, 860);
+//This is required to trigger the window resize.
+driver.get('http://www.google.com');
+driver.takeScreenshot().then(function (data) {
+    console.log("async ran");
+});
+
+//Function to allow looping with an async function inside the loop without javascript's dodgy threading model breaking everything
+
+function asyncLoop(iterations, func, callback) {
+    var index = 0;
+    var done = false;
+    var loop = {
+        next: function () {
+            if (done) {
+                return;
+            }
+
+            if (index < iterations) {
+                index++;
+                func(loop);
+
+            } else {
+                done = true;
+                callback();
+            }
+        },
+
+        iteration: function () {
+            return index - 1;
+        },
+
+        break: function () {
+            done = true;
+            callback();
+        }
+    };
+    loop.next();
+    return loop;
 }
 
-var pageindex = 0;
+asyncLoop(jsondata.length, doScreenShots, function () { console.log("complete")});
 
-
-var webdriver = require('selenium-webdriver');
-
-var keyword = "Nooob";
-
-var driver = new webdriver.Builder().forBrowser('chrome').build();
-    
-//driver.get('http://www.google.com');
-//driver.findElement(webdriver.By.name('q')).sendKeys(keyword);
-//driver.findElement(webdriver.By.name('btnG')).click();
-
-var mobile_emulation = { "deviceName": "iPad" }
-//var chrome_options = driver.ChromeOptions();
-
-
-//driver.wait(function () {return 
-/*
-driver.takeScreenshot().then(function (data) {
-    var base64Data = data.replace(/^data:image\/png;base64,/, "")
-    fs.writeFile(outputfolder + "\\out.png", base64Data, 'base64', function (err) {
-        if (err) console.log(err);
-        console.log("Wrote to " + outputfolder + "\\out.png");
-        process.exit();
-        return true;
-    });
-});
-*/
-    //);}, 2000);
-
-console.log("async ran");
-console.log(jsondata.length);
-
-var loadInProgress = false;
-
-var interval = setInterval(function () {
-
-    //If no other page is being loaded during this tick, and we have not reached the end of the requested files
-
+//Screenshots Function that actually does the work
+function doScreenShots(loop) {
+    var pageindex = loop.iteration();
+    console.log(pageindex + loadInProgress);
     if (!loadInProgress && pageindex < jsondata.length) {
-        //while (pageindex < jsondata.length) {
-        //        console.log("Load image " + (pageindex + 1));
-        //for (var pageindex = 0; pageindex < jsondata.length;) {
         var prefix = "";
         //Get the file path and the page id (matched pair of data)		
         var thisFile = jsondata[pageindex].filepath;
@@ -134,67 +141,46 @@ var interval = setInterval(function () {
         if (thisFile.indexOf("index") > 0) {
             console.log("driver get");
             loadInProgress = true;
-            driver.get(prefix + thisFile);
+
+            var driver = new webdriver.Builder().withCapabilities(chromeCapabilities).build();
+            driver.manage().window().setSize(1024, 860);
+
+            driver.get('http://www.google.com');
+            driver.wait(until.elementLocated(by.tagName('link')), 10000, 'Could not locate the child element within the time specified').then(
+                function () {
+                    driver.takeScreenshot().then(function (data) {
+                        console.log("async ran");
+                    });
+                }
+            );
+
+            driver.get(prefix + thisFile);          //this should block
             console.log("Get File " + thisFile);
-            driver.takeScreenshot().then(function (data) {
-                console.log("Screen Shot ");
-                var base64Data = data.replace(/^data:image\/png;base64,/, "")
-                fs.writeFile(outputfolder + "\\" + thisFileID + ".png", base64Data, 'base64', function (err) {
-                    if (err) console.log(err);
-                    console.log("Wrote to " + outputfolder + "\\" + thisFileID + ".png");
-                    loadInProgress = false;
-                    pageindex++;
-                    //return true;
+            driver.wait(until.elementLocated(by.tagName('link')), 10000, 'Could not locate the child element within the time specified').then(
+                function () {
+                    //Next line does not block and thus causing lots of trouble
+                    driver.takeScreenshot().then(function (data) {
+                        console.log("Screen Shot ");
+                        var base64Data = data.replace(/^data:image\/png;base64,/, "")
+                        try {
+                            fs.writeFileSync(outputfolder + "\\" + thisFileID + ".png", base64Data, 'base64')
+                        } catch (e) {
+                            console.log(err);
+                        }
+                        console.log("Wrote to " + outputfolder + "\\" + thisFileID + ".png");
+                        loadInProgress = false;
+                        driver.quit();
+                        loop.next();
+                    })
                 });
-            });
-            //            driver.wait(function () {  return              }, 2000);
+            //});
         } else {
             console.log("Not an Index File");
             loadInProgress = false;
-            pageindex++;
+            loop.next();
         }
+    } else {
+        //Block thread warning
+        console.log("blocked");
     }
-    }, 250);
-
-        //}
-
-/*
-if (pageindex >= jsondata.length) {
-        console.log("image render complete!");
-        driver.exit();
-        process.exit();
-    }
-*/
-//}
-
-//If page starts loading, set load in progress flag to true (to stop timer ticks from trying to load another page)
-/*
-
-var chromedriver = require('chromedriver');
-
-args = [
-	// optional arguments
-];
-chromedriver.start(args);
-// run your tests
-chromedriver.stop();
-
-
-
-page.onLoadStarted = function () {
-    loadInProgress = true;
-    //page.settings.userAgent = "Phantom.js bot";
-    console.log('page ' + (pageindex + 1) + ' load started');
-};
-
-//When page load finishes, just log it (originally render event ran from here but caused problems with sync)
-
-page.onLoadFinished = function () {
-    console.log('page ' + (pageindex + 1) + ' load finished');
-};
-
-page.onConsoleMessage = function(msg) {
-  system.stderr.writeLine( 'console: ' + msg );
-};
-*/
-
+}
